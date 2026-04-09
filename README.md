@@ -1,9 +1,31 @@
 # 🔐 LexCrypt — Full-Stack Cryptography Vault
 
-> Military-grade AES-256 encryption, RSA key pairs, SHA-256 digital signatures — powered by React.js + Node.js + Express + MongoDB.
+> Military-grade AES-256 encryption, RSA key pairs, SHA-256 digital signatures — built with React.js + Node.js + Express + MongoDB.
 
 ---
 
+## 🚀 Features
+🔐 AES-256 Encryption – Secure sensitive data
+✍️ RSA-2048 Digital Signatures – Identity verification
+🧾 SHA-256 Hashing – Tamper detection
+📁 Secure file upload & vault system
+🔑 Authentication system (Login / Signup)
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 18, React Router v6, Axios, Framer Motion, react-hot-toast |
+| Backend | Node.js, Express.js |
+| Database | MongoDB + Mongoose ODM |
+| Auth | JWT (jsonwebtoken) + bcryptjs |
+| Encryption (server) | Node.js `crypto` — AES-256-CBC, PBKDF2-SHA256 |
+| Encryption (client) | Web Crypto API — AES-CBC, PBKDF2, SHA-256 |
+| Security | Helmet.js, CORS, express-rate-limit, express-validator |
+
+---
 ## 🏗️ Architecture
 
 ```
@@ -85,50 +107,6 @@ lexcrypt/
 
 ---
 
-## ⚡ Cryptographic Flow
-
-### File Encryption
-```
-User uploads file
-  → FileReader reads bytes as base64
-  → SHA-256(base64) computed client-side → stored as integrity hash
-  → AES secret = PBKDF2-SHA256(publicKey, salt, 100000 iterations)
-  → AES-256-CBC encrypts base64 with random IV
-  → { cipherText, iv, sha256Hash } sent to backend API (JWT auth)
-  → Backend generates digital signature: SHA-256(hash:userId:fileId)
-  → All stored in MongoDB VaultFile document
-```
-
-### File Decryption
-```
-User clicks Decrypt
-  → Private key modal opens, shows SHA-256 fingerprint + digital signature
-  → User enters private key
-  → Frontend: normaliseKey(input) === normaliseKey(sessionPrivKey)  ← auth check
-  → POST /api/vault/decrypt/:id { privateKey }
-  → Backend: verifySignature(hash, userId, fileId, storedSig)  ← sig check
-  → Backend: AES-256-CBC decrypt with stored keySecret
-  → Backend: SHA-256(decrypted) === storedHash  ← integrity check
-  → { decryptedContent, sigValid, integrityOk } returned
-  → Client reconstructs file bytes, shows preview + download
-```
-
-### Text Encryption (Crypto page)
-```
-POST /api/crypto/encrypt { plainText, publicKey }
-  → Server: secret = SHA-256(publicKey)
-  → Server: { cipherText, iv } = AES-256-CBC(plainText, PBKDF2(secret))
-  → Server stores keySecret on user document
-  → Returns { cipherText, iv, sha256, algorithm }
-
-POST /api/crypto/decrypt { cipherText, iv, privateKey }
-  → Server retrieves keySecret from user.keySecret
-  → Server: AES-256-CBC decrypt
-  → Returns { plainText }
-```
-
----
-
 ## 🚀 Setup & Installation
 
 ### Prerequisites
@@ -179,6 +157,52 @@ MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/lexcrypt?re
 
 ---
 
+
+## ⚡ Cryptographic Flow
+
+### File Encryption
+```
+User uploads file
+  → FileReader reads bytes as base64
+  → SHA-256(base64) computed client-side → stored as integrity hash
+  → AES secret = PBKDF2-SHA256(publicKey, salt, 100000 iterations)
+  → AES-256-CBC encrypts base64 with random IV
+  → { cipherText, iv, sha256Hash } sent to backend API (JWT auth)
+  → Backend generates digital signature: SHA-256(hash:userId:fileId)
+  → All stored in MongoDB VaultFile document
+```
+
+### File Decryption
+```
+User clicks Decrypt
+  → Private key modal opens, shows SHA-256 fingerprint + digital signature
+  → User enters private key
+  → Frontend: normaliseKey(input) === normaliseKey(sessionPrivKey)  ← auth check
+  → POST /api/vault/decrypt/:id { privateKey }
+  → Backend: verifySignature(hash, userId, fileId, storedSig)  ← sig check
+  → Backend: AES-256-CBC decrypt with stored keySecret
+  → Backend: SHA-256(decrypted) === storedHash  ← integrity check
+  → { decryptedContent, sigValid, integrityOk } returned
+  → Client reconstructs file bytes, shows preview + download
+```
+
+### Text Encryption (Crypto page)
+```
+POST /api/crypto/encrypt { plainText, publicKey }
+  → Server: secret = SHA-256(publicKey)
+  → Server: { cipherText, iv } = AES-256-CBC(plainText, PBKDF2(secret))
+  → Server stores keySecret on user document
+  → Returns { cipherText, iv, sha256, algorithm }
+
+POST /api/crypto/decrypt { cipherText, iv, privateKey }
+  → Server retrieves keySecret from user.keySecret
+  → Server: AES-256-CBC decrypt
+  → Returns { plainText }
+```
+
+---
+
+
 ## 📡 API Reference
 
 ### Auth — `/api/auth`
@@ -217,19 +241,7 @@ MONGO_URI=mongodb+srv://<user>:<password>@cluster0.xxxxx.mongodb.net/lexcrypt?re
 
 ---
 
-## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 18, React Router v6, Axios, Framer Motion, react-hot-toast |
-| Backend | Node.js, Express.js |
-| Database | MongoDB + Mongoose ODM |
-| Auth | JWT (jsonwebtoken) + bcryptjs |
-| Encryption (server) | Node.js `crypto` — AES-256-CBC, PBKDF2-SHA256 |
-| Encryption (client) | Web Crypto API — AES-CBC, PBKDF2, SHA-256 |
-| Security | Helmet.js, CORS, express-rate-limit, express-validator |
-
----
 
 ## 🗒️ Notes
 
